@@ -1,0 +1,67 @@
+<div fxLayout="row" fxLayoutAlign="start center">
+  <mat-card fxFlex="50%" class="example-card">
+    <mat-card-header>
+      <mat-card-title>Your Ships</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-grid-list [cols]="[noOfColumns]" [rowHeight]="rowHeight">
+        <mat-grid-tile
+          class="cursor-pointer"
+          (click)="!lockShipSetting && onClickSetShip($event, tile)"
+          *ngFor="let tile of myMap"
+          [colspan]="tile.cols"
+          [rowspan]="tile.rows"
+          [style.background]="tile.color"
+        >
+        </mat-grid-tile>
+      </mat-grid-list>
+    </mat-card-content>
+  </mat-card>
+
+
+  <button  mat-button (click)="lockChoice()" color="primary">Lock Choice</button>
+
+
+
+  <mat-card fxFlex="50%" class="example-card">
+    <mat-card-header>
+      <mat-card-title>Opponent Hit Map</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-grid-list [cols]="[noOfColumns]" [rowHeight]="rowHeight">
+        <mat-grid-tile
+          class="cursor-pointer"
+          (click)="!isShipSet && onClickHitShip($event, tile)"
+          *ngFor="let tile of oppoentMap"
+          [colspan]="tile.cols"
+          [rowspan]="tile.rows"
+          [style.background]="tile.color"
+        >
+        </mat-grid-tile>
+      </mat-grid-list>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- <div class="game-box">
+ 
+</div>
+
+<div class="game-box">
+  <mat-card class="example-card">
+    <mat-card-header>
+      <mat-card-title>Attacking Opponent Ships</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-grid-list [cols]="[noOfColumns]" [rowHeight]="rowHeight">
+        <mat-grid-tile
+          *ngFor="let tile of tiles"
+          [colspan]="tile.cols"
+          [rowspan]="tile.rows"
+          [style.background]="tile.color"
+        >
+        </mat-grid-tile>
+      </mat-grid-list>
+    </mat-card-content>
+  </mat-card>
+</div> -->

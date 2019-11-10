@@ -1,0 +1,15 @@
+.game-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  width: 300px;
+}
+
+.example-card {
+  width: 400px;
+}
+
+.cursor-pointer{
+  cursor: pointer;
+}

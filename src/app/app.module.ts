@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 import {MetaModule} from './meta/meta.module';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+// import { FlexLayoutModule } from '@angular/flex-layout';
 import {
   MatButtonModule,
   MatCardModule,
@@ -14,6 +15,7 @@ import {
   MatInputModule,
   MatToolbarModule
 } from '@angular/material';
+import { GameModule } from './game/game.module';
 
 @NgModule({
   declarations: [
@@ -30,7 +32,9 @@ import {
     BrowserModule,
     FormsModule,
     HttpClientModule,
-    MetaModule
+    // FlexLayoutModule ,
+    MetaModule,
+    GameModule
   ],
   providers: [],
   bootstrap: [AppComponent]

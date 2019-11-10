@@ -22,7 +22,7 @@ describe('Web3Service', () => {
     service.bootstrapWeb3();
 
     return service.artifactsToContract(metacoin_artifacts).then((abstraction) => {
-      expect(abstraction.currentProvider.host).toBe('http://localhost:8545');
+      expect(abstraction.currentProvider.host).toBe('http://localhost:7545');
     });
   }));
 

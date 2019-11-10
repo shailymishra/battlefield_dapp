@@ -46,9 +46,11 @@ export class MetaSenderComponent implements OnInit {
   }
 
   watchAccount() {
+    console.log('Watch Account Method is called...')
     this.web3Service.accountsObservable.subscribe((accounts) => {
       this.accounts = accounts;
       this.model.account = accounts[0];
+      console.log('Model Account is', this.model.account  )
       this.refreshBalance();
     });
   }
@@ -91,6 +93,7 @@ export class MetaSenderComponent implements OnInit {
       const deployedMetaCoin = await this.MetaCoin.deployed();
       console.log(deployedMetaCoin);
       console.log('Account', this.model.account);
+      console.log('')
       const metaCoinBalance = await deployedMetaCoin.getBalance.call(this.model.account);
       console.log('Found balance: ' + metaCoinBalance);
       this.model.balance = metaCoinBalance;
