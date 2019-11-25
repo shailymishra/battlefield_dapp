@@ -7,6 +7,7 @@ import {
 import { AppDialog } from "./dialog/app-dialog.component";
 import { Web3Service } from "../util/web3.service";
 import { MatSnackBar } from "@angular/material";
+import { BehaviorSubject } from 'rxjs';
 
 declare let require: any;
 const game_artifacts = require("../../../build/contracts/Game.json");
@@ -22,6 +23,7 @@ export class GameComponent implements OnInit {
   noOfRows = 10;
   color = "green";
   defaultcolor = "lightblue";
+  hitTileColor = "red";
 
   myMap: Tile[] = [];
 
@@ -45,13 +47,22 @@ export class GameComponent implements OnInit {
 
   status = "";
   gameContract: any;
-  deployedGameContract : any;
+  deployedGameContract: any;
+
+  private _revealTileBehaviorSubject = new BehaviorSubject(0);
+
   constructor(
     public dialog: MatDialog,
     private web3Service: Web3Service,
     private matSnackBar: MatSnackBar
   ) {
-    console.log("Constructor: webSerivce ", web3Service);
+
+    this._revealTileBehaviorSubject.subscribe(value=>{
+      console.log('Reveal Tile Subscribe', value);
+  
+
+    })
+
   }
 
   ngOnInit() {
@@ -68,54 +79,54 @@ export class GameComponent implements OnInit {
         // this.setChoiceToNetwork();
         this.gameContract.deployed().then(deployed => {
           this.deployedGameContract = deployed;
-          console.log("model", this.model.account);
 
-          this.deployedGameContract.register({from:this.model.account}).then((param)=>{
-            console.log('Registered', param)
-          })
+          this.deployedGameContract
+            .register({ from: this.model.account })
+            .then(param => {
+              // console.log('Registered')
+            });
 
           this.deployedGameContract.TestEvent(function(err, result) {
             if (err) {
               return console.error(err);
             }
-            console.log("Result of TestEvent " , result.args);
-          }); 
-    
-          this.deployedGameContract.PlayerEvent((err, result)=> {
-            if (err) {
-              return console.error(err);
-            }
-            console.log("PLayer Event Result::  " , result.args);
+            console.log("Result of TestEvent ", result.args.who);
           });
 
-          this.deployedGameContract.consoleEvent((err, result)=> {
+          this.deployedGameContract.PlayerEvent((err, result) => {
             if (err) {
               return console.error(err);
             }
-            console.log("COnsole.log " , result.args);
+            console.log("PLayer Event Result addressOfPlayer  ", result.args);
           });
 
-          this.deployedGameContract.uintconsoleEvent((err, result)=> {
+          this.deployedGameContract.consoleEvent((err, result) => {
             if (err) {
               return console.error(err);
             }
-            console.log("uintconsoleEvent.log " , result.args);
+            console.log("COnsole.log ", result.args.consolevalue);
           });
 
-          this.deployedGameContract.bytesConsoleEvent((err, result)=> {
+          this.deployedGameContract.uintconsoleEvent((err, result) => {
             if (err) {
               return console.error(err);
             }
-            console.log("bytesConsoleEvent.log " , result.args);
+            console.log("uintconsoleEvent.log ", result.args.consolevalue);
           });
 
-          this.deployedGameContract.bytes32ConsoleEvent((err, result)=> {
+          this.deployedGameContract.bytesConsoleEvent((err, result) => {
             if (err) {
               return console.error(err);
             }
-            console.log("bytes32ConsoleEvent.log " , result.args);
+            console.log("bytesConsoleEvent.log ", result.args.consolevalue);
           });
-        
+
+          this.deployedGameContract.bytes32ConsoleEvent((err, result) => {
+            if (err) {
+              return console.error(err);
+            }
+            console.log("bytes32ConsoleEvent.log ", result.args.consolevalue);
+          });
         });
       });
   }
@@ -154,6 +165,8 @@ export class GameComponent implements OnInit {
 
   onClickHitShip(event, tile) {
     console.log("onclick", tile);
+    const tileIndex = this.myMap.findIndex(findTile => findTile == tile)
+    this.sendRevealRequest(tileIndex)
   }
 
   setShips() {
@@ -188,62 +201,71 @@ export class GameComponent implements OnInit {
   lockChoice() {
     this.lockShipSetting = true;
     this.randomlyGenerateKeysForEachTile();
-    for (const tileIndex in this.myMap) {
-      const value = this.myMap[tileIndex].color != this.defaultcolor ? 1 : 0;
+    this.myMap.forEach((tileObject, tileIndex) => {
+      const value = tileObject.color != this.defaultcolor ? 1 : 0;
       this.myMapConvertedDataStructure.push(value);
-      const toHash = this.web3Service.getAbiEnoceded(this.randomHashKeys[tileIndex], value);
-      this.myMapHashed.push(this.web3Service.getKeccak256(toHash));
-    }
-    console.log("my map hash", this.myMapHashed);
+      this.myMapHashed.push(
+        this.web3Service.getHashValue(this.randomHashKeys[tileIndex], value)
+      );
+    });
     this.sendChoiceToContract();
   }
 
   randomlyGenerateKeysForEachTile() {
     const upperLimit = 100;
     for (let i = 0; i < 100; i++) {
-      this.randomHashKeys.push(Math.floor(Math.random() * upperLimit) + 1);
+      const randomvalue = Math.floor(Math.random() * upperLimit) + 1;
+      this.randomHashKeys.push(randomvalue);
     }
   }
 
-  revealATile(tileNumber) {
-    console.log("Reveal A Tile");
-    // Send to contract
-    // this.randomHashKeys[tileNumber]
-    // const value = this.myMap[tileNumber].color != this.defaultcolor ? 1 : 0;
+  revealTile(position) {
+    console.log(
+      "Calling Reveal Key from FE at position   ",
+      position,
+      "  Random Hash Key is  ",
+      this.randomHashKeys[position]
+    );
+    this.deployedGameContract
+      .revealTile(position, this.randomHashKeys[position], 1, {
+        from: this.model.account
+      })
+      .then(value => {});
+    this.deployedGameContract.revealTitle((err, result) => {
+      if (err) {
+        return console.error(err);
+      }
+      const tile = this.myMap[position];
+      if (result.args.isTileRevealed) {
+        tile.color = this.hitTileColor;
+      }
+    });
   }
 
   hit(hitTile) {
     // get the index of that tile
+    // if player 1 hits then player 2 should reveal
+    // Basically a game - 
     const index = this.myMap.findIndex(tile => hitTile == tile);
     console.log("Index", index);
   }
 
   async sendChoiceToContract() {
-    console.log("Set Choice To Network");
+    console.log("sendChoiceToContract is called");
     try {
-      // const deployedGameContract = await this.gameContract.deployed();
-      console.log(this.deployedGameContract);
-      console.log("sendChoiceToContract....", this.model.account);
-
-      // console.log("Sending myMapHashed", this.myMapHashed);
-      // await deployedGameContract.setShips(this.myMapHashed,{from:this.model.account});
-
       this.deployedGameContract
         .setShips(this.myMapHashed, { from: this.model.account })
         .then(value => {
-          console.log("Ship is set", value);
-          
-          // HIT BY SHIP TWO
-          const position = 9
-          this.deployedGameContract.revealTile(position,this.randomHashKeys[position], 1, {from:this.model.account}).then(value=>{
-            console.log('value',value)
-          })
-
-        })
-
+          console.log("Ship is set");
+        });
     } catch (e) {
       console.log(e);
     }
+  }
+
+  sendRevealRequest(position){
+    console.log('Sending reveal request')
+    this._revealTileBehaviorSubject.next(position);
   }
 }
 

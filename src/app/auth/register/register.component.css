@@ -1,0 +1,35 @@
+/* .example-container {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .example-container > * {
+    width: 50%;
+  }
+  .example-card {
+    max-width: 400px;
+  }
+
+  .example-icon {
+    padding: 0 14px;
+  }
+  
+  .example-spacer {
+    flex: 1 1 auto;
+  } */
+
+  .login-card {
+    width: 400px;
+    margin: 10% auto;
+  }
+  
+  .mat-card-title {
+    font-size: 16px;
+  }
+  
+  .login-form {
+    min-width: 150px;
+    max-width: 500px;
+    width: 100%;
+  }
+  

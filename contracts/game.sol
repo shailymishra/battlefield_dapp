@@ -14,36 +14,34 @@ contract Game {
     Player public player2;
 
 event TestEvent(address who);   // declaring event
-event PlayerEvent(address addressOfPlayer, bytes32[] choiceHash, uint8 serialNo);
+event PlayerEvent(address addressOfPlayer, bytes32[100] choiceHash, uint8 serialNo);
 
 event consoleEvent(string consolevalue);
 event uintconsoleEvent(uint8 consolevalue);
 event bytesConsoleEvent(bytes consolevalue);
 event bytes32ConsoleEvent(bytes32 consolevalue);
 
-	constructor() public {
-        // player1.serialNo = 1;
-        player2.serialNo = 2;
-        // player1.addressOfPlayer = msg.sender;
-        player2.addressOfPlayer = 0xA8658699A8B0885690259554a541a30356A24dba;
-	}
+event revealTitle(bool isTileRevealed);
 
+	constructor() public {
+	}
 
     function register() public    {
         if (player1.addressOfPlayer == address(0)){
             player1.addressOfPlayer = msg.sender;
             player1.serialNo = 1;
+            emit consoleEvent('Player1 is set');
+            emit PlayerEvent(player1.addressOfPlayer, player1.choiceHash, player1.serialNo);
         }
         else if (player2.addressOfPlayer == address(0)){
              player2.addressOfPlayer = msg.sender;
              player2.serialNo = 2;
+             emit consoleEvent('Player2 is set');
+             emit PlayerEvent(player2.addressOfPlayer, player2.choiceHash, player2.serialNo);
         }
     }
 
     function setShips(bytes32[100] memory choiceHash) public {
-
-        emit TestEvent(msg.sender); // logging event
-
         if (msg.sender == player1.addressOfPlayer){
             player1.choiceHash = choiceHash;
             player1.serialNo = 10;
@@ -53,8 +51,6 @@ event bytes32ConsoleEvent(bytes32 consolevalue);
         }
     }
 
-
-
     function getLength() public view  returns (uint) {
       return player1.choiceHash.length;
     }
@@ -63,21 +59,25 @@ event bytes32ConsoleEvent(bytes32 consolevalue);
     // Should use event emit?
     function revealTile(uint8 pos, uint8 randomKey, uint8 value) public {
         if (msg.sender == player1.addressOfPlayer){
-            emit consoleEvent('Msg Sender is player1');
-            emit bytesConsoleEvent(abi.encodePacked(randomKey,value));
-            emit bytes32ConsoleEvent(player1.choiceHash[pos]);
+            emit consoleEvent('Msg Sender is Player 1');
             if( keccak256(abi.encodePacked(randomKey,value)) == player1.choiceHash[pos] ){
                 player1.choice[pos] = value;
-                emit uintconsoleEvent(player1.choice[pos]);
+                emit revealTitle(true);
+            }else{
+                emit revealTitle(false);
             }
         }
         else if (msg.sender == player2.addressOfPlayer){
             emit consoleEvent('Msg Sender is player2');
             if( keccak256(abi.encodePacked(randomKey,value)) == player1.choiceHash[pos] ){
                 player1.choice[pos] = value;
-                emit uintconsoleEvent(player2.choice[pos]);
+                emit revealTitle(true);
+            }else{
+                emit revealTitle(false);
             }
         }
     }
+
+    
 
 }

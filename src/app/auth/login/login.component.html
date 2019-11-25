@@ -1,0 +1,123 @@
+<!-- <form layout="row" layout-align="center center" [formGroup]="registerForm">
+  <div class="example-container">
+    <mat-form-field>
+      <input
+        type="email"
+        matInput
+        formControlName="email"
+        placeholder="Email"
+      />
+    </mat-form-field>
+
+    <mat-form-field>
+      <input
+        type="password"
+        matInput
+        formControlName="password"
+        placeholder="Password"
+      />
+    </mat-form-field>
+    <label class="error">{{ errorMessage }}</label>
+    <label class="success">{{ successMessage }}</label>
+    <button mat-button type="submit" (click)="tryRegister(registerForm.value)">
+      Login
+    </button>
+
+    <button
+      mat-raised-button
+      (click)="authService.doGoogleLogin()"
+      color="warn"
+    >
+      Login with Google
+    </button>
+
+    <div class="forgotPassword">
+      <span routerLink="/forgot-password">Forgot Password?</span>
+    </div>
+  </div>
+
+  <div class="redirectToLogin">
+    <span
+      >Don't have an account?<span class="redirect" routerLink="/register-user">
+        Sign Up</span
+      ></span
+    >
+  </div>
+</form> -->
+
+<mat-card class="login-card">
+  <mat-card-header>
+    <mat-card-title>Login</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form
+      class="dynamic-form"
+      [formGroup]="loginForm"
+      (submit)="authService.login($event)"
+    >
+      <mat-form-field class="example-full-width">
+        <input
+          type="email"
+          matInput
+          formControlName="email"
+          placeholder="Email"
+        />
+      </mat-form-field>
+
+      <mat-form-field class="example-full-width">
+        <input
+          type="password"
+          matInput
+          formControlName="password"
+          placeholder="Password"
+        />
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+  <mat-card-actions>
+    <div
+      class="container"
+      fxLayout
+      fxLayout.xs="column"
+      fxLayoutAlign="center"
+      fxLayoutGap="10px"
+      fxLayoutGap.xs="0"
+    >
+      <button
+        fxFlex="100%"
+        mat-button
+        type="submit"
+        (click)="authService.login(loginForm)"
+      >
+        Login
+      </button>
+    </div>
+
+    <div
+      class="container"
+      fxLayout
+      fxLayout.xs="column"
+      fxLayoutAlign="center"
+      fxLayoutGap="10px"
+      fxLayoutGap.xs="0"
+    >
+      <button fxFlex="100%" mat-button (click)="authService.googleAuth()">
+        Login with Google
+      </button>
+    </div>
+
+    <div
+      class="container"
+      fxLayout
+      fxLayout.xs="column"
+      fxLayoutAlign="center"
+      fxLayoutGap="10px"
+      fxLayoutGap.xs="0"
+    >
+      <button fxFlex="50%" mat-button (click)="goToRegister()">Register</button>
+      <button fxFlex="50%" mat-button (click)="goToForgotPassword()">
+        Forgot Password
+      </button>
+    </div>
+  </mat-card-actions>
+</mat-card>
