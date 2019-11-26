@@ -47,13 +47,12 @@
 
 <mat-card class="login-card">
   <mat-card-header>
-    <mat-card-title>Login</mat-card-title>
+    <mat-card-title>Register</mat-card-title>
   </mat-card-header>
   <mat-card-content>
     <form
       class="dynamic-form"
       [formGroup]="registerForm"
-      (submit)="authService.login($event)"
     >
       <mat-form-field class="example-full-width">
         <input
@@ -87,13 +86,13 @@
         fxFlex="100%"
         mat-button
         type="submit"
-        (click)="authService.register(registerForm)"
+        (click)="register(registerForm)"
       >
         Register
       </button>
     </div>
 
-    <div
+    <!-- <div
       class="container"
       fxLayout
       fxLayout.xs="column"
@@ -104,7 +103,7 @@
       <button fxFlex="100%" mat-button (click)="authService.googleAuth()">
         Login with Google
       </button>
-    </div>
+    </div> -->
 
     <div
       class="container"

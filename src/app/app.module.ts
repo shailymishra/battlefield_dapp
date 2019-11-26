@@ -30,6 +30,7 @@ import { AuthService } from './auth/auth.service';
 import { LayoutComponent } from './base/layout/layout.component';
 import { SharedModule } from './shared/shared.module';
 import { RegisterComponent } from './auth/register/register.component';
+import { AuthMockService } from './auth/auth.mock.service';
 @NgModule({
   declarations: [
     AppComponent,
@@ -57,7 +58,7 @@ import { RegisterComponent } from './auth/register/register.component';
     MetaModule,
     GameModule
   ],
-  providers: [AuthService],
+  providers: [AuthService,AuthMockService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

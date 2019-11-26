@@ -53,7 +53,6 @@
     <form
       class="dynamic-form"
       [formGroup]="loginForm"
-      (submit)="authService.login($event)"
     >
       <mat-form-field class="example-full-width">
         <input
@@ -87,13 +86,13 @@
         fxFlex="100%"
         mat-button
         type="submit"
-        (click)="authService.login(loginForm)"
+        (click)="login(loginForm)"
       >
         Login
       </button>
     </div>
 
-    <div
+    <!-- <div
       class="container"
       fxLayout
       fxLayout.xs="column"
@@ -104,7 +103,7 @@
       <button fxFlex="100%" mat-button (click)="authService.googleAuth()">
         Login with Google
       </button>
-    </div>
+    </div> -->
 
     <div
       class="container"

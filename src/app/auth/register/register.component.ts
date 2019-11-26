@@ -5,6 +5,7 @@ import { FormBuilder, Validators } from "@angular/forms";
 import { AuthService } from "../auth.service";
 import { Router } from '@angular/router';
 import {urls} from '../../shared/constant'
+import { AuthMockService } from '../auth.mock.service';
 
 @Component({
   selector: "app-register",
@@ -19,7 +20,7 @@ export class RegisterComponent implements OnInit {
   constructor(
     public afAuth: AngularFireAuth,
     private fb: FormBuilder,
-    private authService: AuthService,
+    private authService: AuthMockService,
     public router: Router,
     public ngZone: NgZone
   ) {}
@@ -31,6 +32,11 @@ export class RegisterComponent implements OnInit {
       email: ["", [Validators.required]],
       password: ["", [Validators.required]]
     });
+    this.authService.isLoggedInSubject.subscribe((isLoggedIn) => {
+      if (isLoggedIn) {
+      }
+  });
+
   }
 
 //   doGoogleLogin() {
@@ -59,7 +65,14 @@ export class RegisterComponent implements OnInit {
 //     );
 //   }
 
+
+register(form: any) {
+  this.authService.register(form.value).subscribe(() => {
+      this.goToLogin();
+  });
+}
+
   goToLogin() {
-    this.router.navigate([this.urls.FORGOT_PASSWORD]);
+    this.router.navigate([this.urls.LOGIN]);
   }
 }

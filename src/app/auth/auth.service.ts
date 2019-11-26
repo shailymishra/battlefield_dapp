@@ -3,7 +3,7 @@ import * as firebase from "firebase/app";
 import { AngularFireAuth } from "@angular/fire/auth";
 import { Router } from "@angular/router";
 import { urls } from "../shared/constant";
-// import {admin} from "@angular/fire/auth"
+import * as admin from "firebase-admin";
 import {
   AngularFirestore,
   AngularFirestoreDocument
@@ -15,6 +15,8 @@ export class AuthService {
   userData: any; // Save logged in user data
   urls;
   _isLoggedIn = new BehaviorSubject(false);
+
+
   constructor(
     public afs: AngularFirestore, // Inject Firestore service
     public afAuth: AngularFireAuth, // Inject Firebase auth service
@@ -23,6 +25,11 @@ export class AuthService {
     public fireDB: AngularFireDatabase
   ) {
     this.urls = urls;
+    // admin.initializeApp({
+    //   credential: admin.credential.applicationDefault(),
+    //   databaseURL: "https://battleship-2a6d8.firebaseio.com",
+    // });
+
     this.afAuth.authState.subscribe(user => {
       if (user) {
         console.log("Already a user exists!!", user);
@@ -30,7 +37,8 @@ export class AuthService {
         localStorage.setItem("user", JSON.stringify(this.userData));
         JSON.parse(localStorage.getItem("user"));
         this._isLoggedIn.next(true);
-        this.getUsers();
+        // this.getUsers();
+        this.listAllUsers(null);
       } else {
         console.log("No User Found");
         localStorage.setItem("user", null);
@@ -133,16 +141,38 @@ export class AuthService {
     });
   }
 
+  listAllUsers(nextPageToken) {
+    // // List batch of users, 1000 at a time.
+    // admin.auth().listUsers(1000, nextPageToken)
+    //   .then(function(listUsersResult) {
+    //     listUsersResult.users.forEach(function(userRecord) {
+    //       console.log('user', userRecord.toJSON());
+    //     });
+    //     // if (listUsersResult.pageToken) {
+    //     //   // List next batch of users.
+    //     //   this.listAllUsers(listUsersResult.pageToken);
+    //     // }
+    //   })
+    //   .catch(function(error) {
+    //     console.log('Error listing users:', error);
+    //   });
+  }
+
   getUsers() {
     console.log("get users");
-    this.fireDB
-      .list("user")
-      .snapshotChanges()
-      .subscribe(res => {
-        console.log("Ress", res);
-        res.forEach(doc => {
-          console.log("doc", doc);
-        });
-      });
+
+
+    // Start listing users from the beginning, 1000 at a time.
+    // listAllUsers();
+
+    // this.fireDB
+    //   .list("user")
+    //   .snapshotChanges()
+    //   .subscribe(res => {
+    //     console.log("Ress", res);
+    //     res.forEach(doc => {
+    //       console.log("doc", doc);
+    //     });
+    //   });
   }
 }
