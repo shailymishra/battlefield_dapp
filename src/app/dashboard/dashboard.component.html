@@ -1,1 +1,77 @@
-Dashboarc
+<br />
+<br />
+
+
+
+<div fxFlex="45">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+    <!-- Player Column -->
+    <ng-container matColumnDef="firstName">
+      <th mat-header-cell *matHeaderCellDef>Player</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.firstname }}{{ "  " }}{{ element.lastname }}
+      </td>
+    </ng-container>
+
+    <!-- Send Request Column -->
+    <ng-container matColumnDef="Send Request">
+      <th mat-header-cell *matHeaderCellDef>Send Request to play</th>
+      <td mat-cell *matCellDef="let element">
+        <button
+          mat-icon-button
+          (click)="sendRequest(element)"
+          aria-label="Send Play Game Request"
+        >
+          <mat-icon>check_circle</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="playeerdisplayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: playeerdisplayedColumns"></tr>
+  </table>
+</div>
+
+<div fxFlex = "10">
+
+</div>
+<div fxFlex="45">
+  <table mat-table [dataSource]="requestDataSource" class="mat-elevation-z8">
+    <!-- Player Column -->
+    <ng-container matColumnDef="requester">
+      <th mat-header-cell *matHeaderCellDef>Pending Request</th>
+      <td mat-cell *matCellDef="let element">{{ element.requester }}</td>
+    </ng-container>
+
+    <!-- Accept Request Column -->
+    <ng-container matColumnDef="Accept Request">
+      <th mat-header-cell *matHeaderCellDef>Accept</th>
+      <td mat-cell *matCellDef="let element">
+        <button
+          mat-icon-button
+          (click)="acceptRequest(element)"
+          aria-label="Send Play Game Request"
+        >
+          <mat-icon color="green">done</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <!-- Decline Request Column -->
+    <ng-container matColumnDef="Decline Request">
+      <th mat-header-cell *matHeaderCellDef>Decline</th>
+      <td mat-cell *matCellDef="let element">
+        <button
+          mat-icon-button
+          (click)="declineRequest(element)"
+          aria-label="Send Play Game Request"
+        >
+          <mat-icon color="red">highlight_off</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="requestdisplayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: requestdisplayedColumns"></tr>
+  </table>
+</div>

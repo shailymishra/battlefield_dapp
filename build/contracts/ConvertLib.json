@@ -450,12 +450,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0xFA34CCe6B1189aa495681D0f8f376BAbCa43E94b",
-      "transactionHash": "0x76461f369640e0b0aa0ee4bab982f3b77150489750d6fc2db9e39c1f4ab62180"
+      "address": "0x4daaD602683318bb31E63116D7a9D5c7F9aF03e2",
+      "transactionHash": "0xcecf118cf5ba1452203f69fca5dfa3d186aafe5b04372f082005e5e2a98ffffe"
     }
   },
   "schemaVersion": "3.0.16",
-  "updatedAt": "2019-11-25T08:22:45.104Z",
+  "updatedAt": "2019-11-29T06:55:03.166Z",
   "devdoc": {
     "methods": {}
   },

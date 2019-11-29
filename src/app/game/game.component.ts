@@ -7,7 +7,11 @@ import {
 import { AppDialog } from "./dialog/app-dialog.component";
 import { Web3Service } from "../util/web3.service";
 import { MatSnackBar } from "@angular/material";
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject } from "rxjs";
+import { AuthMockService } from "../auth/auth.mock.service";
+import { ActivatedRoute, Router } from "@angular/router";
+import { GameMockService, Request } from "./game.mock.service";
+import { switchMap } from "rxjs/operators";
 
 declare let require: any;
 const game_artifacts = require("../../../build/contracts/Game.json");
@@ -24,6 +28,7 @@ export class GameComponent implements OnInit {
   color = "green";
   defaultcolor = "lightblue";
   hitTileColor = "red";
+  missTileColor = "yellow";
 
   myMap: Tile[] = [];
 
@@ -32,46 +37,55 @@ export class GameComponent implements OnInit {
 
   oppoentMap: Tile[] = [];
 
-  lockShipSetting = false;
-
-  accounts: string[];
+  lockingMyShip = false;
+  bothShipLocked = false;
+  myTurn = false;
 
   randomHashKeys = [];
-
-  model = {
-    amount: 5,
-    receiver: "",
-    balance: 0,
-    account: ""
-  };
 
   status = "";
   gameContract: any;
   deployedGameContract: any;
 
-  private _revealTileBehaviorSubject = new BehaviorSubject(0);
-
+  playerNo;
+  hitTile;
+  loggedInUser;
   constructor(
     public dialog: MatDialog,
     private web3Service: Web3Service,
-    private matSnackBar: MatSnackBar
+    private matSnackBar: MatSnackBar,
+    private authService: AuthMockService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private gameService: GameMockService
   ) {
-
-    this._revealTileBehaviorSubject.subscribe(value=>{
-      console.log('Reveal Tile Subscribe', value);
-  
-
-    })
-
   }
 
   ngOnInit() {
+    this.route.paramMap
+      .pipe(
+        switchMap(params => {
+          const id = +params.get("id");
+          return this.gameService.getRequestById(id);
+        })
+      )
+      .subscribe((data: any) => {
+        if (data) {
+          this.startTimer();
+        } else {
+          this.router.navigate(["dashboard"]);
+        }
+      });
+
+    this.authService.getCurrentUserSubject.subscribe(
+      user => (this.loggedInUser = user)
+    );
+
     this.initializeGrid();
     setTimeout(() => {
       this.setShips();
     });
 
-    this.watchAccount();
     this.web3Service
       .artifactsToContract(game_artifacts)
       .then(GameContractAbstraction => {
@@ -79,12 +93,6 @@ export class GameComponent implements OnInit {
         // this.setChoiceToNetwork();
         this.gameContract.deployed().then(deployed => {
           this.deployedGameContract = deployed;
-
-          this.deployedGameContract
-            .register({ from: this.model.account })
-            .then(param => {
-              // console.log('Registered')
-            });
 
           this.deployedGameContract.TestEvent(function(err, result) {
             if (err) {
@@ -127,8 +135,89 @@ export class GameComponent implements OnInit {
             }
             console.log("bytes32ConsoleEvent.log ", result.args.consolevalue);
           });
+
+          this.deployedGameContract.bytes32ArrayConsoleEvent((err, result) => {
+            if (err) {
+              return console.error(err);
+            }
+            const address = result.args.who
+            if(this.loggedInUser.blockchainAccount == address){
+              console.log("bytes32ArrayConsoleEvent.log ", result.args.consolevalue);
+            }
+          });
+
+          
+
+          this.deployedGameContract.bothHaveLockedChoiceEvent((err, result) => {
+            if (err) {
+              return console.error(err);
+            }
+            this.bothShipLocked = result.args.value;
+            this.deployedGameContract
+              .whoAmI({ from: this.loggedInUser.blockchainAccount })
+              .then(value => {
+                console.log("value", value);
+                this.playerNo = value;
+                if (this.playerNo == 1) {
+                  this.myTurn = true;
+                }
+              });
+            // now can play
+            // tell first whose turn it is
+            // and then would the frontend maintain it or the blockchain would maintain it
+            //
+          });
+
+          // If other player has hit, then you have to reveal it
+          this.deployedGameContract.hitTileEvent((err, result) => {
+            if (err) {
+              return console.error(err);
+            }
+            const hitAddress = result.args.hitAddress;
+            const tileNumber = result.args.tileNumber;
+            if (hitAddress == this.loggedInUser.blockchainAccount) {
+              this.revealTile(tileNumber);
+            }
+          });
+
+          // when you have revealed - is it a miss or hit
+          // and it is revealed to the other blockchain address
+          this.deployedGameContract.revealTitleEvent((err, result) => {
+            if (err) {
+              return console.error(err);
+            }
+            const revealToAddress = result.args.revealToAddress;
+            const isHit = result.args.isHit;
+            const value = result.args.value;
+            if ((revealToAddress == this.loggedInUser.blockchainAccount) && isHit ) {
+              const tile = this.oppoentMap[this.hitTile];
+              console.log('value', value)
+              if (value == 1) {
+                tile.color = this.hitTileColor;
+              } else {
+                tile.color = this.missTileColor;
+              }
+            }
+          });
         });
       });
+  }
+
+  timeLeft: number = 300;
+  interval;
+
+  startTimer() {
+    this.interval = setInterval(() => {
+      if (this.timeLeft > 0) {
+        this.timeLeft--;
+      } else {
+        this.timeLeft = 60;
+      }
+    }, 1000);
+  }
+
+  pauseTimer() {
+    clearInterval(this.interval);
   }
 
   initializeGrid() {
@@ -154,8 +243,6 @@ export class GameComponent implements OnInit {
   }
 
   onClickSetShip(event, tile) {
-    console.log("onclick", tile);
-    tile.color = "red";
     if (tile.color == this.color) {
       tile.color = this.defaultcolor;
     } else {
@@ -164,9 +251,9 @@ export class GameComponent implements OnInit {
   }
 
   onClickHitShip(event, tile) {
-    console.log("onclick", tile);
-    const tileIndex = this.myMap.findIndex(findTile => findTile == tile)
-    this.sendRevealRequest(tileIndex)
+    const tileIndex = this.oppoentMap.findIndex(findTile => findTile == tile);
+    this.hitTile = tileIndex;
+    this.hit(tileIndex);
   }
 
   setShips() {
@@ -175,7 +262,7 @@ export class GameComponent implements OnInit {
       content:
         "You have to set 5 ships. A Carrier of size 5. \n A Battleship of size 4. \n A Cruisier of size 3. Submarine of size 3. Destroyer of size 2. You can place ship vertically or horizontally"
     };
-    this.openDialog(setShipMessage);
+    // this.openDialog(setShipMessage);
   }
 
   openDialog(data): void {
@@ -189,17 +276,8 @@ export class GameComponent implements OnInit {
     });
   }
 
-  watchAccount() {
-    console.log("Watch Account Method is called...");
-    this.web3Service.accountsObservable.subscribe(accounts => {
-      this.accounts = accounts;
-      this.model.account = accounts[0];
-      console.log("Model Account is", this.model.account);
-    });
-  }
-
   lockChoice() {
-    this.lockShipSetting = true;
+    this.lockingMyShip = true;
     this.randomlyGenerateKeysForEachTile();
     this.myMap.forEach((tileObject, tileIndex) => {
       const value = tileObject.color != this.defaultcolor ? 1 : 0;
@@ -220,53 +298,45 @@ export class GameComponent implements OnInit {
   }
 
   revealTile(position) {
-    console.log(
-      "Calling Reveal Key from FE at position   ",
-      position,
-      "  Random Hash Key is  ",
-      this.randomHashKeys[position]
-    );
+    const tile = this.myMap[position]
+    const value = this.myMap[position].color != this.defaultcolor ? 1 : 0;
     this.deployedGameContract
-      .revealTile(position, this.randomHashKeys[position], 1, {
-        from: this.model.account
+      .revealTile(position, this.randomHashKeys[position], value, {
+        from: this.loggedInUser.blockchainAccount
       })
-      .then(value => {});
-    this.deployedGameContract.revealTitle((err, result) => {
-      if (err) {
-        return console.error(err);
-      }
-      const tile = this.myMap[position];
-      if (result.args.isTileRevealed) {
-        tile.color = this.hitTileColor;
-      }
-    });
+      .then(value => {
+        if (tile.color == this.color) {
+          tile.color = this.hitTileColor;
+        } else {
+          tile.color = this.missTileColor;
+        }
+
+        this.myTurn = true;
+      });
   }
 
   hit(hitTile) {
     // get the index of that tile
     // if player 1 hits then player 2 should reveal
-    // Basically a game - 
-    const index = this.myMap.findIndex(tile => hitTile == tile);
-    console.log("Index", index);
+    // Basically a game -
+    this.deployedGameContract.hitTile( hitTile, {from:this.loggedInUser.blockchainAccount}).then((result)=>{
+        this.myTurn = false;
+    });
   }
 
   async sendChoiceToContract() {
-    console.log("sendChoiceToContract is called");
     try {
       this.deployedGameContract
-        .setShips(this.myMapHashed, { from: this.model.account })
+        .setShips(this.myMapHashed, {
+          from: this.loggedInUser.blockchainAccount
+        })
         .then(value => {
-          console.log("Ship is set");
         });
     } catch (e) {
       console.log(e);
     }
   }
 
-  sendRevealRequest(position){
-    console.log('Sending reveal request')
-    this._revealTileBehaviorSubject.next(position);
-  }
 }
 
 export interface Tile {

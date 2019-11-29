@@ -2520,14 +2520,14 @@
         }
       },
       "links": {
-        "ConvertLib": "0xFA34CCe6B1189aa495681D0f8f376BAbCa43E94b"
+        "ConvertLib": "0x4daaD602683318bb31E63116D7a9D5c7F9aF03e2"
       },
-      "address": "0x11a3DB2274f41DbfB87029b8E203D4910Dece008",
-      "transactionHash": "0x8ac8e3b89755c0490a1e23f7b462eb8acea675fb3329b1140f61de64ce571630"
+      "address": "0xA2142f759Ab3A4EE1FCECE2E99C2c3fD33C2bE9F",
+      "transactionHash": "0xf74812d7006073afe26b6638dc71dba46be293bf104acd6df8c892f9648f69ce"
     }
   },
   "schemaVersion": "3.0.16",
-  "updatedAt": "2019-11-23T07:25:27.677Z",
+  "updatedAt": "2019-11-29T06:55:03.170Z",
   "devdoc": {
     "methods": {}
   },

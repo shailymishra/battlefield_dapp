@@ -41,7 +41,7 @@ export class AuthService {
         this.listAllUsers(null);
       } else {
         console.log("No User Found");
-        localStorage.setItem("user", null);
+        // localStorage.setItem("user", null);
         JSON.parse(localStorage.getItem("user"));
         this._isLoggedIn.next(false);
       }
