@@ -1,11 +1,61 @@
 <!-- <div fxLayout="row" fxLayoutAlign="start center"> -->
 
-  <br>
-  <br>
-  <p>{{timeLeft}} Seconds Left to lock your choice....</p>
+<br />
+<br />
+<p>{{ timeLeft }} Seconds Left to lock your choice....</p>
 
-  <br>
+<br />
 
+<div *ngIf="!bothShipLocked" layout="row" layout-padding="" layout-margin="">
+  <button
+    mat-raised-button
+    [ngStyle]="{
+      'background-color':
+       ( currentShipSetting && currentShipSetting.id === 1) ? 'grey' : ''
+    }"
+    (click)="setShipOfSize(2, 1)"
+  >
+    Set Ship of size 2
+  </button>
+  <button mat-raised-button
+  [ngStyle]="{
+    'background-color':
+     ( currentShipSetting && currentShipSetting.id === 2) ? 'grey' : ''
+  }"
+  (click)="setShipOfSize(3, 2)">
+    Set Ship of size 3
+  </button>
+  <button mat-raised-button
+  [ngStyle]="{
+    'background-color':
+     ( currentShipSetting && currentShipSetting.id === 3) ? 'grey' : ''
+  }"
+  (click)="setShipOfSize(3, 3)">
+    Set Ship of size 3
+  </button>
+  <button mat-raised-button
+  [ngStyle]="{
+    'background-color':
+     ( currentShipSetting && currentShipSetting.id === 4) ? 'grey' : ''
+  }"
+  (click)="setShipOfSize(4, 4)">
+    Set Ship of size 4
+  </button>
+  <button mat-raised-button
+  [ngStyle]="{
+    'background-color':
+     ( currentShipSetting && currentShipSetting.id === 5) ? 'grey' : ''
+  }"
+  (click)="setShipOfSize(5, 5)">
+    Set Ship of size 5
+  </button>
+  <button mat-raised-button (click)="doneShip()">Done!</button>
+</div>
+
+<br />
+<br />
+
+<div layout="row" layout-padding="" layout-margin="">
   <div fxFlex="45">
     <mat-card class="example-card">
       <mat-card-header>
@@ -30,17 +80,15 @@
     </button>
   </div>
 
-  <div fxFlex="10">
+  <div fxFlex="10"></div>
 
-  </div>
-
-  <br>
+  <br />
   <div *ngIf="bothShipLocked">
-    {{ ( myTurn) ? "Please hit any tile " : "Its other player's turn to hit"}}
+    {{ myTurn ? "Please hit any tile " : "Its other player's turn to hit" }}
   </div>
-<br>
+  <br />
   <div fxFlex="45">
-    <mat-card *ngIf="bothShipLocked"  class="example-card">
+    <mat-card *ngIf="bothShipLocked" class="example-card">
       <mat-card-header>
         <mat-card-title>Opponent Hit Map</mat-card-title>
       </mat-card-header>
@@ -59,7 +107,7 @@
       </mat-card-content>
     </mat-card>
   </div>
-
+</div>
 
 <!-- </div> -->
 

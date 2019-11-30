@@ -12,6 +12,7 @@ import { AuthMockService } from "../auth/auth.mock.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { GameMockService, Request } from "./game.mock.service";
 import { switchMap } from "rxjs/operators";
+import { MessageService } from '../util/message/message.service';
 
 declare let require: any;
 const game_artifacts = require("../../../build/contracts/Game.json");
@@ -57,9 +58,9 @@ export class GameComponent implements OnInit {
     private authService: AuthMockService,
     private route: ActivatedRoute,
     private router: Router,
-    private gameService: GameMockService
-  ) {
-  }
+    private gameService: GameMockService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit() {
     this.route.paramMap
@@ -140,13 +141,14 @@ export class GameComponent implements OnInit {
             if (err) {
               return console.error(err);
             }
-            const address = result.args.who
-            if(this.loggedInUser.blockchainAccount == address){
-              console.log("bytes32ArrayConsoleEvent.log ", result.args.consolevalue);
+            const address = result.args.who;
+            if (this.loggedInUser.blockchainAccount == address) {
+              console.log(
+                "bytes32ArrayConsoleEvent.log ",
+                result.args.consolevalue
+              );
             }
           });
-
-          
 
           this.deployedGameContract.bothHaveLockedChoiceEvent((err, result) => {
             if (err) {
@@ -189,9 +191,12 @@ export class GameComponent implements OnInit {
             const revealToAddress = result.args.revealToAddress;
             const isHit = result.args.isHit;
             const value = result.args.value;
-            if ((revealToAddress == this.loggedInUser.blockchainAccount) && isHit ) {
+            if (
+              revealToAddress == this.loggedInUser.blockchainAccount &&
+              isHit
+            ) {
               const tile = this.oppoentMap[this.hitTile];
-              console.log('value', value)
+              console.log("value", value);
               if (value == 1) {
                 tile.color = this.hitTileColor;
               } else {
@@ -205,6 +210,25 @@ export class GameComponent implements OnInit {
 
   timeLeft: number = 300;
   interval;
+
+  ships = [];
+
+  currentShipSetting;
+
+  setShipOfSize(size, id) {
+    console.log("size", size);
+    console.log("id", id);
+    let shipIndex = this.ships.findIndex(ship => ship.id == id);
+    if (shipIndex == -1) {
+      this.ships.push({ id, tiles: [],destroyed :0 });
+      shipIndex = this.ships.findIndex(ship => ship.id == id);
+    }
+    this.currentShipSetting = this.ships[shipIndex];
+  }
+
+  doneShip(){
+    this.currentShipSetting = null;
+  }
 
   startTimer() {
     this.interval = setInterval(() => {
@@ -243,10 +267,19 @@ export class GameComponent implements OnInit {
   }
 
   onClickSetShip(event, tile) {
-    if (tile.color == this.color) {
-      tile.color = this.defaultcolor;
-    } else {
-      tile.color = this.color;
+    if (this.currentShipSetting) {
+      const tileIndex = this.myMap.findIndex(findTile => findTile == tile);
+      if (tile.color == this.color) {
+        tile.color = this.defaultcolor;
+        const index = this.currentShipSetting.tiles.findIndex(findTile => findTile == tileIndex)
+        console.log('index to remove', index)
+        this.currentShipSetting.tiles.slice(index)
+      } else {
+        tile.color = this.color;
+        this.currentShipSetting.tiles.push(tileIndex)
+      }
+    }else{
+      this.messageService.showErrorMessage('Click on the button to set ships');
     }
   }
 
@@ -277,6 +310,7 @@ export class GameComponent implements OnInit {
   }
 
   lockChoice() {
+    console.log('lockChoice  ', this.ships)
     this.lockingMyShip = true;
     this.randomlyGenerateKeysForEachTile();
     this.myMap.forEach((tileObject, tileIndex) => {
@@ -298,16 +332,44 @@ export class GameComponent implements OnInit {
   }
 
   revealTile(position) {
-    const tile = this.myMap[position]
+    const tile = this.myMap[position];
+    console.log('my map', this.myMap[position].color)
     const value = this.myMap[position].color != this.defaultcolor ? 1 : 0;
+
+    const findShipIndex = this.ships.findIndex(ship=>{
+      const tiles = ship.tiles
+      const id = ship.id
+      const findTileIndex = ship.tiles.findIndex(tile=>tile==position)
+      return (findTileIndex == -1) ? false : true
+    })
+
+    console.log('value of the tile', value)
+    console.log('findShipIndex', findShipIndex)
+    console.log('ship is', this.ships[findShipIndex] )
+    const ship = this.ships[findShipIndex]
+    console.log('')
+    if(value == 1){
+      ship.destroyed +=1 
+    }
+
     this.deployedGameContract
       .revealTile(position, this.randomHashKeys[position], value, {
         from: this.loggedInUser.blockchainAccount
       })
       .then(value => {
-        if (tile.color == this.color) {
-          tile.color = this.hitTileColor;
-        } else {
+
+        if(value == 1){
+          if(ship.destroyed < 5){
+            tile.color = this.hitTileColor;
+          }else{
+            console.log('Ship is destroyedddd')
+            // Set all tile of that ship as gone. i.e. lightblue
+            ship.tiles.map(positionvalue =>{
+              this.myMap[positionvalue].color = this.defaultcolor
+            })
+            this.messageService.showSuccessMessage('Your Ship has sunk');
+          }
+        }else{
           tile.color = this.missTileColor;
         }
 
@@ -319,9 +381,11 @@ export class GameComponent implements OnInit {
     // get the index of that tile
     // if player 1 hits then player 2 should reveal
     // Basically a game -
-    this.deployedGameContract.hitTile( hitTile, {from:this.loggedInUser.blockchainAccount}).then((result)=>{
+    this.deployedGameContract
+      .hitTile(hitTile, { from: this.loggedInUser.blockchainAccount })
+      .then(result => {
         this.myTurn = false;
-    });
+      });
   }
 
   async sendChoiceToContract() {
@@ -330,13 +394,11 @@ export class GameComponent implements OnInit {
         .setShips(this.myMapHashed, {
           from: this.loggedInUser.blockchainAccount
         })
-        .then(value => {
-        });
+        .then(value => {});
     } catch (e) {
       console.log(e);
     }
   }
-
 }
 
 export interface Tile {
