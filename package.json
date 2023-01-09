@@ -30,7 +30,7 @@
     "core-js": "^2.5.7",
     "ethers": "^4.0.20",
     "firebase": "^7.5.0",
-    "firebase-admin": "^8.8.0",
+    "firebase-admin": "^11.4.1",
     "json-server": "^0.15.1",
     "rxjs": "^6.3.3",
     "truffle-contract": "^4.0.1",
